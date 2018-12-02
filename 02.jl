@@ -42,12 +42,12 @@ end
 @btime edit_dist_lt_n_zip($input[1], $input[2], 2)
 @btime edit_dist_lt_n($input[1], $input[2], 2)
 
-function star2(input)
+function star2(input; distf::Function=edit_dist_lt_n_zip)
     input = copy(input)
     while !isempty(input)
         x = pop!(input)
         for y in input
-            if edit_dist_lt_n_zip(x, y, 2)
+            if distf(x, y, 2)
                 return x,y
             end
         end
@@ -55,5 +55,10 @@ function star2(input)
     return nothing
 end
 
-@btime matches = star2(input_strings)
+# ...but working direclty with strings is way more expensive:
+@btime star2(input_strings)               # 571 μs
+@btime star2(input)                       # 140 μs
+@btime star2(input, distf=edit_dist_lt_n) # 134 μs
+
+matches = star2(input)
 join(matches[1][matches[1] .== matches[2]])
