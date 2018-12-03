@@ -12,4 +12,4 @@ end
 
 @show sum(c > 1 for c in cloth)
 
-[id for (id, xrange, yrange) in input if all(cloth[xrange, yrange] .== 1)]
+[id for (id, xrange, yrange) in input if all(isequal(1), view(cloth, xrange, yrange))]
