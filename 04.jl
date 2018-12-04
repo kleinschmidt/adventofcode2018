@@ -42,15 +42,21 @@ sleeps = collect_sleeps(input)
 total_sleeps = Dict(id => mapreduce(((x,y),) -> Minute(y-x), +, sleeps)
                     for (id, sleeps) in sleeps)
 
-mins, id = findmax(total_sleeps)
-
-mins_asleep = zeros(Int, 60)
-for (sleep, wake) in sleeps[id]
-    sleep_min = Dates.value(Minute(sleep))
-    wake_min = Dates.value(Minute(wake))
-    mins_asleep[sleep_min:(wake_min-1)] .+= 1
+function find_sleepiest_min(sleeps::Vector{Tuple{DateTime,DateTime}})
+    mins_asleep = zeros(Int, 60)
+    for (sleep, wake) in sleeps
+        sleep_min = Dates.value(Minute(sleep))+1 # one-based indexing ;)
+        wake_min = Dates.value(Minute(wake))
+        mins_asleep[sleep_min:wake_min] .+= 1
+    end
+    sleep_freq, sleepiest_min = findmax(mins_asleep) .- (0,1)
 end
 
-_, sleepiest_min = findmax(mins_asleep)
+mins, id = findmax(total_sleeps)
+_, sleepiest_min = find_sleepiest_min(sleeps[id])
 
 @show id * sleepiest_min
+
+
+(freq, mins2), id2 = findmax(Dict(id => find_sleepiest_min(sleeps) for (id, sleeps) in sleeps))
+@show id2 * mins2
