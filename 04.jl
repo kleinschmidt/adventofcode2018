@@ -20,22 +20,37 @@ end
 
 input = sort!(parseline.(lines), by=first)
 
-let
+function collect_sleeps(input)
     id = -1
     last_sleep = DateTime(0)
-    longest_sleep = Minute(0)
-    sleepiest = -1
+    sleeps = Dict{Int,Vector{Tuple{DateTime,DateTime}}}()
     for (time, event) in input
         if event isa Int
             id = event
         elseif event == :sleep
             last_sleep = time
         else # event == :wake
-            sleep = time - last_sleep
-            longest_sleep = max(sleep, longest_sleep)
-            sleepiest = longest_sleep == sleep ? id : sleepiest
+            push!(get!(sleeps, id, Vector{Tuple{DateTime,DateTime}}()),
+                  (last_sleep, time))
         end
     end
-
-    sleepiest, longest_sleep
+    sleeps
 end
+
+sleeps = collect_sleeps(input)
+
+total_sleeps = Dict(id => mapreduce(((x,y),) -> Minute(y-x), +, sleeps)
+                    for (id, sleeps) in sleeps)
+
+mins, id = findmax(total_sleeps)
+
+mins_asleep = zeros(Int, 60)
+for (sleep, wake) in sleeps[id]
+    sleep_min = Dates.value(Minute(sleep))
+    wake_min = Dates.value(Minute(wake))
+    mins_asleep[sleep_min:(wake_min-1)] .+= 1
+end
+
+_, sleepiest_min = findmax(mins_asleep)
+
+@show id * sleepiest_min
