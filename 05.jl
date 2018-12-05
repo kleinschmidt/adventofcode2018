@@ -54,4 +54,6 @@ using BenchmarkTools
 input = read("05.input", String) |> strip |> collect
 
 @btime canceli!(copy($input));
+#  280.754 μs (2 allocations: 195.39 KiB)
 @btime cancel($input);
+#  572.529 μs (15 allocations: 128.69 KiB)
