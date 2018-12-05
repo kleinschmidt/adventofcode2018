@@ -42,8 +42,8 @@ sleeps = collect_sleeps(input)
 function find_sleepiest_min(sleeps::Vector{Tuple{DateTime,DateTime}})
     mins_asleep = zeros(Int, 60)
     for (sleep, wake) in sleeps
-        sleep_min = Dates.value(Minute(sleep))+1 # one-based indexing ;)
-        wake_min = Dates.value(Minute(wake))
+        sleep_min = minute(sleep)+1 # one-based indexing ;)
+        wake_min = minute(wake)
         mins_asleep[sleep_min:wake_min] .+= 1
     end
     sleep_freq, sleepiest_min = findmax(mins_asleep) .- (0,1)
