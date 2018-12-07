@@ -1,9 +1,5 @@
 input = [(parse.(Int, split(pair, ','))..., ) for pair in readlines("06.input")]
 
-# strategy: brute force.  find closest point for each grid cell
-xs = 1:maximum(first.(input))+50
-ys = 1:maximum(last.(input))+50
-
 manhattan_dist(a,b) = sum(abs.(a.-b))
 
 function findmin_noties(xs, tie_sentinel=0)
