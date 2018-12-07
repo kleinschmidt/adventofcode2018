@@ -29,6 +29,16 @@ function star1(input)
             closest[x,y] = dist == mindist ? 0 : dist < mindist ? i : closest[x,y]
             mindist = min(dist, mindist)
         end
+manhattan_dist(a,b) = sum(abs.(a.-b))
+@btime distmap = abs.($xs .- first.($input3d)) .+ abs.($ys .- last.($input3d));
+@btime distmap2 = manhattan_dist.(tuple.($xs, $ys), $input3d);
+
+
+
+closest = last.(Tuple.(last(findmin(distmap2, dims=3))))
+closest_rev = size(distmap2,3)+1 .-
+    last.(Tuple.(last(findmin(view(distmap2, :, :, 50:-1:1), dims=3))))
+closest[closest .!= closest_rev] .= 0
     end
     closest
 end
