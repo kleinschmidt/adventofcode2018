@@ -3,6 +3,16 @@ using Test
 # each line is "Step X must be completed before step Y can begin"
 parseline(line) = (line[6], line[37])
 
+test_input = parseline.(split(strip("""
+Step C must be finished before step A can begin.
+Step C must be finished before step F can begin.
+Step A must be finished before step B can begin.
+Step A must be finished before step D can begin.
+Step B must be finished before step E can begin.
+Step D must be finished before step E can begin.
+Step F must be finished before step E can begin.
+"""), '\n'))
+
 input = parseline.(readlines("07.input"))
 
 # my feeling is that you can either start from the top or the bottom.  let's try
@@ -37,35 +47,37 @@ roots(input) = setdiff(keys(backward(input)), keys(forward(input)))
 # the most straightforward way is to use a forward frontier and the backwards
 # edges to determine whether completing a task should add it to the frontier.
 
-function star1(input)
-    f_edges = forward(input)
-    b_edges = Dict(t=>Set(f) for (t,f) in backward(input))
-    frontier = sort!(collect(setdiff(keys(f_edges), keys(b_edges))), rev=true)
-    ordered = Char[]
-    while !isempty(frontier)
-        next = pop!(frontier)
-        for dep in get(f_edges, next, ())
-            if isempty(delete!(b_edges[dep], next))
-                push!(frontier, dep)
-                # could also delete dep from back edges but not necessary
-            end
-        end
-        sort!(frontier, rev=true)
-        push!(ordered, next)
-    end
-    ordered
+mutable struct JobQueue
+    f_edges::Dict{Char}
+    b_edges::Dict{Char}
+    queue::Vector{Char}
 end
 
-test_input = parseline.(split(strip("""
-Step C must be finished before step A can begin.
-Step C must be finished before step F can begin.
-Step A must be finished before step B can begin.
-Step A must be finished before step D can begin.
-Step B must be finished before step E can begin.
-Step D must be finished before step E can begin.
-Step F must be finished before step E can begin.
-"""), '\n'))
+function JobQueue(input)
+    f_edges = forward(input)
+    b_edges = Dict(t=>Set(f) for (t,f) in backward(input))
+    queue = sort!(collect(setdiff(keys(f_edges), keys(b_edges))), rev=true)
+    JobQueue(f_edges, b_edges, queue)
+end
 
+Base.iterate(jq::JobQueue) = iterate(jq, 0)
+function Base.iterate(jq::JobQueue, state)
+    isempty(jq.queue) && return nothing
+    next = pop!(jq.queue)
+    for dep in get(jq.f_edges, next, ())
+        if isempty(delete!(jq.b_edges[dep], next))
+            push!(jq.queue, dep)
+            # could also delete dep from back edges but not necessary
+        end
+    end
+    sort!(jq.queue, rev=true)
+    (next, state+1)
+end
+
+Base.length(jq::JobQueue) = length(union(keys(jq.f_edges), keys(jq.b_edges)))
+Base.eltype(::Type{JobQueue}) = Char
+
+star1(input) = collect(JobQueue(input))
 @test String(star1(test_input)) == "CABDFE"
 
 String(star1(input))
