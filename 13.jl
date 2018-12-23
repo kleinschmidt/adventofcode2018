@@ -72,9 +72,9 @@ function turn!(cart::Cart, location::Char)
 end
 
 function move!(board::Board)
-    deleted = 0
     resize!(board.crashes, length(board.carts))
     fill!(board.crashes, false)
+
     for (i,cart) in enumerate(board.carts)
         turn!(cart, board.map[cart.pos])
         cart.pos += cart.vel
@@ -88,6 +88,7 @@ function move!(board::Board)
             end
         end
     end
+
     deleteat!(board.carts, board.crashes)
     sort!(board.carts)
     return board
