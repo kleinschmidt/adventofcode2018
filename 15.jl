@@ -85,7 +85,6 @@ function next_step(start, board::Board)
     queue = CartesianIndex{2}[start]
     ancestors = zeros(CartesianIndex{2}, size(openmap))
 
-    done = false
     while !isempty(queue)
         current = popfirst!(queue)
         # println("current: $(current.I)")
